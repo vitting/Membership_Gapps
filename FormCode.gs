@@ -335,13 +335,43 @@ function removeMemberFromContactGroup(member) {
   try {
     var contacts = ContactsApp.getContactsByCustomField(member.id, CONTACTCUSTOMFIELD_MEMBERID);
     
-    if (contacts && contacts.length) {
+    if (contacts.length) {
       var contact = contacts[0];
       ContactsApp.deleteContact(contact);
     }
+    
+    success = true;
   }
   catch(e) {
     ssLogger.log("Error removeMemberFromContactGroup");
+    ssLogger.log(e);
+  }
+  finally {
+    return success;
+  }
+}
+
+//Rename member in contacts
+function renameMemberProperties(member) {
+  var success = false;
+  
+  try {
+    var contacts = ContactsApp.getContactsByCustomField(member.id, CONTACTCUSTOMFIELD_MEMBERID);
+    
+    if (contacts.length) {
+      var contact = contacts[0];
+      contact.setFullName(member.firstname + " " + member.lastname);
+      var emails = contact.getEmails(ContactsApp.Field.HOME_EMAIL)
+      
+      if (emails.length) {
+        emails[0].setAddress(member.mail);
+      }
+    }
+    
+    success = true;
+  }
+  catch(e) {
+    ssLogger.log("Error renameMemberProperties");
     ssLogger.log(e);
   }
   finally {

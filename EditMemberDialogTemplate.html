@@ -103,8 +103,9 @@
             var button = "<button id='" + member.id + "' type='button' class='btn btn-primary btn-sm' data-member='" + JSON.stringify(member) + "'>Rediger</button>";
             var output = "<tr><td>" + member.firstname + " " + member.lastname + "</td><td>" + member.mail + "</td><td>" + button + "</td></tr>";
             $("table tbody").append(output);
-            $("#numberOfMembers").text(members.length);
           }
+          
+          $("#numberOfMembers").text(members.length);
         }
       
         $("table tbody").on("click", "button", function() {

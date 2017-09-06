@@ -128,28 +128,35 @@ function ResendConfirmationEmail(member) {
 // Unsubscribe/delete member and send mail
 function UnsubscribeMember(member) {
   var success = false;
-   
-  if (member) {
-    var memberDeleted = deleteMember(member);
-    
-    if (memberDeleted) {
-      removeMemberFromContactGroup(member);
+  
+  try {
+    if (member) {
+      var memberDeleted = deleteMember(member);
       
-      if (member.sendMail) {
-        sendUnsubscribeMail(member);
+      if (memberDeleted) {
+        removeMemberFromContactGroup(member);
+        
+        if (member.sendMail) {
+          sendUnsubscribeMail(member);
+        }
+        
+        success = true;
       }
-      
-      success = true;
     }
   }
-  
-  return success;
+  catch(e) {
+    ssLogger.log("Error in UnsubscribeMember");
+    ssLogger.log(e);
+  }
+  finally {
+    return success;
+  }
 }
 
 // Save edited member info
 function saveEditMember(member) {
   var success = false;
-  Logger.log(member);
+  
   try {
     if (member) {
       var ss = SpreadsheetApp.openById(getActiveAnswerSheetId());
@@ -164,6 +171,8 @@ function saveEditMember(member) {
       as.getRange(row, BIRTHDATE_COLUMN).setValue(member.birthdate);
       as.getRange(row, MAIL_COLUMN).setValue(member.mail);
       as.getRange(row, MOBILEPHONE_COLUMN).setValue(member.mobile);
+      
+      renameMemberProperties(member);
       success = true;
     }
   } 
