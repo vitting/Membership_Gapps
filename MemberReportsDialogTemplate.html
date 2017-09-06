@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<style>
+  #container {
+    height: 425px;
+    overflow: auto;
+  }
+</style>
+</head>
+  <body>
+    <div>
+      <div id="container">
+        <div class="list-group mb-5">
+          <button id="report_all" type="button" class="list-group-item list-group-item-action d-flex justify-content-between" disabled><span>Alle medlemmer</span><span id="bagde_allmembers" class="badge badge-secondary"></span></button>
+          <button id="report_under18" type="button" class="list-group-item list-group-item-action d-flex justify-content-between" disabled><span>Medlemmer under 18</span><span id="badge_members_under18" class="badge badge-secondary"></span></button>
+          <button id="report_over18" type="button" class="list-group-item list-group-item-action d-flex justify-content-between" disabled><span>Medlemmer over 18</span><span id="bagde_members_over18" class="badge badge-secondary"></span></button>
+          <button id="report_payments" type="button" class="list-group-item list-group-item-action d-flex justify-content-between" disabled><span>Mangler at betale</span><span id="badge_payment" class="badge badge-secondary"></span></button>
+        </div>
+      </div>
+      <footer class="d-flex justify-content-end">
+        <button id="close_btn" type="button" class="btn btn-info">Luk</button>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.4/jspdf.min.js"></script>
+<!--https://github.com/simonbengtsson/jsPDF-AutoTable-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.3.2/jspdf.plugin.autotable.js"></script>
+<script> 
+  var membersAll = [];
+  var mOver18 = [];
+  var mUnder18 = [];
+  var mPayments = [];
+  var standardColumns = ["Navn", "Adresse", "Postnr & By", "Fødselsdato", "Alder", "E-mail", "Mobil", "Betalt"];
+  
+  $(function() {
+    google.script.run.withSuccessHandler(function(data) {
+      membersAll = JSON.parse(data);
+      findValues();
+      setButtonsActions();
+    }).getAnswerSheetValuesWithAge();
+    
+    function setButtonsActions() {
+      $("#bagde_allmembers").text(membersAll.length);
+      $("#bagde_members_over18").text(mOver18.length);
+      $("#badge_members_under18").text(mUnder18.length);
+      $("#badge_payment").text(mPayments.length);
+      if (membersAll.length > 0) $("#report_all").prop("disabled", false);
+      if (mOver18.length > 0) $("#report_over18").prop("disabled", false);
+      if (mUnder18.length > 0) $("#report_under18").prop("disabled", false);
+      if (mPayments.length > 0) $("#report_payments").prop("disabled", false);
+    }
+    
+    function findValues() {
+      for (member of membersAll) {
+        if (member.age < 18) {
+          mUnder18.push(member);
+        } else {
+          mOver18.push(member);
+        }
+        
+        if (!member.payment) {
+          mPayments.push(member);
+        }
+      }
+    }
+  
+    function writePdf(columns, rows, title, filename, uselandscape) {
+      var orintation = "p";
+      
+      if (uselandscape) {
+        orintation = "l";
+      }
+      
+      var doc = new jsPDF(orintation, 'pt');
+      doc.autoTable(columns, rows, {
+        style: {
+          fontSize: 12
+        },
+        startY: 50,
+        margin: {
+          top: 40
+        },
+        showHeader: "everyPage",
+        addPageContent: function(data) {
+          if (data && data.pageCount === 1) {
+            doc.text(title, 40, 40);
+          }
+          
+          doc.setFontSize(10);
+          doc.text("Side " + data.pageCount, data.settings.margin.left, doc.internal.pageSize.height - 40);
+        }
+      });
+      
+      doc.save(filename + ".pdf");
+    }
+    
+    function generateRows(members) {
+      var rows = []; 
+      for (member of members) {
+        var row = [
+          member.firstname + " " + member.lastname,
+          member.street,
+          member.zipcodeAndCity,
+          member.birthdateFormatted,
+          member.age,
+          member.mail,
+          member.mobile,
+          member.paymentFormatted
+        ];
+        
+        rows.push(row);
+      }
+      
+      return rows;
+    }
+    
+    $("#report_all").click(function() {
+      writePdf(standardColumns, generateRows(membersAll), "Alle medlemmer (" + membersAll.length + ")", "allemedlemmer", true);
+    });
+    
+    $("#report_under18").click(function() {
+      writePdf(standardColumns, generateRows(mUnder18), "Medlemmer under 18 (" + mUnder18.length + ")", "medlemmer_under_18", true);
+    });
+    
+    $("#report_over18").click(function() {
+      writePdf(standardColumns, generateRows(mOver18), "Medlemmer over 18 (" + mOver18.length + ")", "medlemmer_over_18", true);
+    });
+    
+    $("#report_payments").click(function() {
+      writePdf(standardColumns, generateRows(mPayments), "Medlemmer der mangler at betale (" + mPayments.length + ")", "medlemmer_manglende_betaling", true);
+    });
+  
+    $("#close_btn").click(function() {
+      google.script.host.close();
+    });
+  });
+</script>

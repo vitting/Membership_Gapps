@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no;">
+    <meta name="viewport" content="width=600,initial-scale = 2.3,user-scalable=no">
+    <meta name="viewport" content="width=device-width">
+    <base target="_top">
+  </head>
+  <body>
+    <div id="container" style="max-width: 600px;margin: 0 auto;font-size: 1.2em;line-height: 1.5em;">
+      <div>
+        <p>Hej <?= recipientName ?></p>
+      </div>
+      <div class="body" style="margin: 20px 0 20px 0;">
+        <p>Du er nu blevet indmeldt i Silkeborg KFUM Volleyball og vi håber du får en masse gode oplevelser i klubben :)</p>
+        <p>Du skal betale <?= amount ?> kr. i kontingent for denne sæson. Kontingentet skal være indbetalt senest 14 dage efter du har modtaget denne e-mail.</p>
+        <p>Indbetal <?= amount ?> kr. fra MobilePay til nummeret: XXXXX eller skan QR koden herunder. I besked feltet skriver du: Kontingent + <?= recipientName ?>.</p>
+        <div class="qr-container" style="margin-bottom: 20px;margin-top: 20px;">           
+            <a href="https://mobilepay.dk/da-dk/pages/betal.aspx?phone=0045XXXXX&amount=<?= amount ?>&comment=Kontingent%20">
+              <!-- <img id="qrcode" src="./qr_kontingent_350.png" alt="MobilePay QR Kode" style="display: block;width: 80%;height: 80%;margin: 0 auto;" /> -->
+              <img id="qrcode" src="cid:qrimg" alt="MobilePay QR Kode" style="display: block;width: 80%;height: 80%;margin: 0 auto;" />
+            </a>
+        </div>
+        <p>Hvis du ikke har mulighed for at indbetale kontingent med MobilePay skal du overføre <?= amount ?> kr. til kontonummer: 7170 xxxxxxx. Husk at skriv dit navn i besked feltet til modtager.</p>
+        <p>Har du sprøgsmål, gode ideer eller noget andet på hjertet, så er du altid velkommen til at sende os en e-mail på <a href="mailto:XXXXXX@gmail.com">XXXXXX@gmail.com</a>, eller tag en snak med et medlem fra bestyrelsen.</p>
+        <div class="signature">
+          <div>Med venlig hilsen</div>
+          <div>Silkeborg KFUM Volleyball</div>
+        </div>
+      </div>
+      <a href="http://www.XXXXXX.dk" target="_blank" title="Gå til Silkeborg KFUM Volleyballs hjemmeside">
+        <!-- <img class="logo" src="./silkeborg_kfum_logo.png" alt="Silkeborg KFUM Volleyball Logo" style="width: 100%;" /> -->
+        <img class="logo" src="cid:logo" alt="Silkeborg KFUM Volleyball Logo" style="width: 100%;" />
+      </a>
+    </div>
+  </body>
+</html>

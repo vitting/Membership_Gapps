@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<?!=include("OverlayCss")?>
+<style>
+  #tableContainer {
+    height: 425px;
+    width: 100%;
+    overflow: auto;
+  }
+  
+  #editContainer {
+    position: absolute;
+    z-index: 90;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    display: none;
+  }
+</style>
+</head>
+  <body>
+    <?!=include("OverlayHtml")?>
+    
+    <div id="editContainer" data-member="">
+    <div>
+      <div class="input-group mb-3 mt-3">
+        <span class="input-group-addon">Fornavn</span>
+        <input type="text" class="form-control" id="firstnameMember">
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-addon">Efternavn</span>
+        <input type="text" class="form-control" id="lastnameMember">
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-addon">Adresse</span>
+        <input type="text" class="form-control" id="streetMember">
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-addon">Postnummer og by</span>
+        <input type="text" class="form-control" id="zipcodeAndCityMember">
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-addon">Fødselsdato</span>
+        <input type="date" class="form-control" id="birthdateMember">
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-addon">E-mail</span>
+        <input type="email" class="form-control" id="mailMember">
+      </div>
+      <div class="input-group mb-5">
+        <span class="input-group-addon">Mobilnummer</span>
+        <input type="number" min="20000000" max="90000000"  class="form-control" id="mobileMember">
+      </div>
+      <div class="d-flex justify-content-between mt-5">
+        <button id="editSave" type="button" class="btn btn-primary">Gem</button>
+        <button id="editClose" type="button" class="btn btn-info">Luk</button>
+      </div>
+    </div>  
+    </div>
+    
+    <div id="contentContainer">
+      <div id="tableContainer" class="mb-4">
+        <table class="table table-sm table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Navn</th>
+              <th>E-mail</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+      <footer class="d-flex justify-content-between">
+        <div>Antal medlemmer: <span id="numberOfMembers" ></span></div>
+        <button id="closeBtn" type="button" class="btn btn-info">Luk</button>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+  $(function() {
+    startup();
+    
+    function startup() {
+      google.script.run.withSuccessHandler(function(data) {
+        var members = JSON.parse(data);
+        $("table tbody").empty();
+        
+        if (members) {
+          for (var i = 0; i < members.length; i++) {
+            var member = members[i];
+            member.sendMail = false;
+            
+            var button = "<button id='" + member.id + "' type='button' class='btn btn-primary btn-sm' data-member='" + JSON.stringify(member) + "'>Rediger</button>";
+            var output = "<tr><td>" + member.firstname + " " + member.lastname + "</td><td>" + member.mail + "</td><td>" + button + "</td></tr>";
+            $("table tbody").append(output);
+            $("#numberOfMembers").text(members.length);
+          }
+        }
+      
+        $("table tbody").on("click", "button", function() {
+          var member = $(this).data("member");
+          showEditDialog(member);
+        });
+      }).getAnswerSheetValues()
+    }
+  
+    $("#editSave").click(function() {
+      var member = hideEditDialog(true);
+      $("#overlay").show();
+      
+      google.script.run.withSuccessHandler(function(success) {
+        $("#overlay").hide();  
+        
+        if (success) {
+          startup();
+        } else {
+          
+        }
+      }).saveEditMember(member);
+    });
+  
+    $("#editClose").click(function() {
+      hideEditDialog(false);      
+    });
+  
+    $("#closeBtn").click(function() {
+      google.script.host.close();
+    });
+    
+    function resetEditDialog() {
+      $("#firstnameMember, #lastnameMember, #streetMember, #zipcodeAndCityMember, #birthdateMember, #mailMember, #mobileMember").val("");
+    }
+    
+    function getEditDialogValues() {
+      var member = $("#editContainer").data("member");
+      var firstname = $("#firstnameMember").val();
+      var lastname = $("#lastnameMember").val();
+      var street = $("#streetMember").val();
+      var zip = $("#zipcodeAndCityMember").val();
+      var birthdate = $("#birthdateMember").val();
+      var mail = $("#mailMember").val();
+      var mobile = $("#mobileMember").val();
+      
+      member.firstname = firstname;
+      member.lastname = lastname;
+      member.street = street;
+      member.zipcodeAndCity = zip;
+      member.birthdate = birthdate;
+      member.mail = mail;
+      member.mobile = mobile;
+      
+      return member;
+    }
+    
+    function setEditDialogValues(member) {
+      $("#firstnameMember").val(member.firstname);
+      $("#lastnameMember").val(member.lastname);
+      $("#streetMember").val(member.street);
+      $("#zipcodeAndCityMember").val(member.zipcodeAndCity);
+      $("#birthdateMember").val(formatDate(member.birthdate));
+      $("#mailMember").val(member.mail);
+      $("#mobileMember").val(member.mobile);
+    }
+    
+    function formatDate(value) {
+      var date = new Date(value);
+      var year = date.getFullYear();
+      var month = date.getMonth() + 1;
+      var day = date.getDate();
+      if (month < 10) month = "0" + month;
+      if (day < 10) day = "0" + day;
+      var birthdate = year + "-" + month + "-" + day;
+      return birthdate;
+    }
+    
+    function showEditDialog(member) {
+      setEditDialogValues(member);
+      $("#editContainer").data("member", member).show();
+    }
+    
+    function hideEditDialog(returnMember) {
+      var member = null;
+      if (returnMember) {
+        member = getEditDialogValues();
+      }
+      resetEditDialog();
+      $("#editContainer").data("member", "").hide();
+      
+      return member;
+    }
+  });
+</script>

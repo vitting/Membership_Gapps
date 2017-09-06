@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<style>
+  #close_btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+</style>
+</head>
+  <body>
+    <div>
+      <ul>
+        <li>Du må ikke rette i svararket efter det er blevet oprettet. Du må endvidere ikke omdøbe Svararket eller faner i arket.</li>
+        <li>Du kan få relevante data fra Svararket under Menu -> Reportet.</li>
+        <li>Nye medlemmer modtager automatisk en bekræftigelses e-mail når de melder sig ind med en velkomst hilsen og info om betaling. Hvis du ikke ønsker at medlemmer modtager en bekræftigelses e-mail kan du slå det fra i Menu -> Indstillinger.</li>
+        <li>Når et medlem bliver indmeldt bliver personen automatisk tilføjet til gruppen/etiketten Medlemmer i <a href="https://contacts.google.com" target="_blank">Google Kontakter</a>.</li>
+        <li>Hvis du skal slette et medlem så brug funktionen Udmeld medlem. Dette sikre at medlemmet bliver slettet alle de rigtige steder. Du kan endvidere vælge at sende en "du er nu udmeldt" e-mail til medlemmet.</li>
+        <li>Hvis et medlem er blevet slettet vil personen stadig stå i Formen under svar. Ignorere de data der er under Form svar og brug kun de data der er i Svararket.</li>
+      </ul>
+    </div>
+    <button id="close_btn" type="button" class="btn btn-info">Luk</button>
+  </body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script> 
+  $(function() {
+    
+    $("#close_btn").click(function() {
+      google.script.host.close();
+    });
+  });
+</script>

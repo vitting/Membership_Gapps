@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<style>
+  /* The switch - the box around the slider */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+
+  /* Hide default HTML checkbox */
+  .switch input {display:none;}
+
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #f44242;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  input:checked + .slider {
+    background-color: #3bd660;
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px #3bd660;
+  }
+
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+  
+  .settings_input {
+    width: 180px;
+  }
+  
+  #close_btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+  
+  #developer_mail_container {
+    display: none;
+    margin-top: 10px;
+  }
+  
+  #developer_mail {
+    width: 200px;
+  }
+  
+  #devModeEnable {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    background-color: #fffeee;
+  }
+  
+  #dev_mode_container {
+    display: none;
+  }
+  
+  .input-half-size {
+    width: 50%;
+    text-align: right;
+  }
+  
+  input[type=text], input[type=email] {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid lightgray;
+  }
+  
+  .little-helper {
+    display: inline-block;
+    border-radius: 50%;
+    color: white;
+    background-color: blue;
+    width: 1em;
+    height: 1em;
+    line-height: 1em;
+    text-align: center;
+    cursor: help;
+  }
+  
+  .heading {
+    font-weight: bold;
+  }
+</style>
+</head>
+  <body>
+    <div>
+      <div id="send_confirmation_mail" class="d-flex justify-content-between">
+        <div class="heading">Send bekræftelses mail</div>
+      
+        <div>
+          <label class="switch">
+            <input id="confirm_mail" type="checkbox" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+      <hr/>
+      <div id="membership_fee">
+        <div class="heading mb-2">Kontingent <span class="little-helper" title="Hvis der ikke er halvårs kontingent så skriv det samme beløb i begge felter.">?</span></div>
+        <div class="d-flex justify-content-between">
+          <div>
+            <label>Helt år</label>
+            <input id="fee_full" class="input-half-size" type="text" placeholder="Helt år" />
+          </div>
+          <div>
+            <label>Halvt år</label>
+            <input id="fee_half" class="input-half-size" type="text" placeholder="Halvt år" />
+          </div>
+          
+          <button id="membership_fee_btn" type="button" class="btn btn-primary btn-sm">Gem</button>
+        </div>
+      </div>
+      
+      <div id="dev_mode_container" class="mt-4">
+        <hr/>
+        <div class="d-flex justify-content-between">
+          <div class="heading">Udvikler tilstand <span class="little-helper" title="Når udvikler tilstand er aktiv vil alle e-mails blive sendt til nedestående e-mail adresse i stedet for den medlemmet indtaster.">?</span></div>
+      
+          <div>
+            <label class="switch">
+              <input id="developer_mode" type="checkbox" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+      
+        <div id="developer_mail_container">
+          <div class="d-flex justify-content-between">
+            <div>
+              <label>Developer E-mail</label>
+              <input id="developer_mail" type="email" />
+            </div>
+            <button id="developer_mail_btn" type="button" class="btn btn-primary btn-sm">Gem</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <footer>
+      <div id="devModeEnable"></div>
+      <button id="close_btn" type="button" class="btn btn-info">Luk</button>
+    </footer>
+  </body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+  var enableDevModeCounter = 0;
+  $(function() {
+    google.script.run.withSuccessHandler(function(data) {
+      var settings = JSON.parse(data);
+      $("#confirm_mail").prop("checked", settings.sendConfirmationMail==="true");
+      $("#fee_full").val(settings.membershipFee.full);
+      $("#fee_half").val(settings.membershipFee.half);
+      $("#developer_mode").prop("checked", settings.developmentMode==="true");
+      $("#developer_mail").val(settings.developmentMail);
+      if (settings.developmentMode==="true") {
+        $("#developer_mail_container").show();
+      }
+    }).getSettings();
+  
+    $("#confirm_mail").change(function() {
+      var value = $("#confirm_mail").prop("checked");
+      google.script.run.saveSetting("sendconfirmationmail", value);
+    });
+    
+    $("#membership_fee_btn").click(function() {
+      var full = $("#fee_full").val();
+      var half = $("#fee_half").val();
+      var value = {
+        "full": full,
+        "half": half
+      };
+      
+      google.script.run.saveSetting("membershipfee", value);
+    });
+    
+    $("#developer_mode").change(function() {
+      var value = $("#developer_mode").prop("checked");
+      
+      if (value) {
+        $("#developer_mail_container").show();
+      } else {
+        $("#developer_mail_container").hide();
+      }
+      
+      google.script.run.saveSetting("developmentmode", value);
+    });
+    
+    $("#developer_mail_btn").click(function() {
+      var value = $("#developer_mail").val();
+      google.script.run.saveSetting("developmentmail", value);
+    });
+    
+    $("#close_btn").click(function() {
+      google.script.host.close();
+    });
+    
+    $("#devModeEnable").click(function() {
+      enableDevModeCounter++;
+      if (enableDevModeCounter > 2 && enableDevModeCounter<5) {
+        $("#devModeEnable").text(enableDevModeCounter);
+      }
+      
+      if (enableDevModeCounter === 5) {
+        $("#devModeEnable").text("");
+        $("#dev_mode_container").show();
+      }
+    });
+  });
+</script>

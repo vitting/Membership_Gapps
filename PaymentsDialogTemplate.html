@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<?!=include("OverlayCss")?>
+<style>
+  #table-container {
+    height: 425px;
+    width: 100%;
+    overflow: auto;
+  }
+</style>
+</head>
+  <body>
+    <?!=include("OverlayHtml")?>
+    <div>
+      <div id="table-container" class="mb-4">
+      <table class="table table-sm table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Navn</th>
+            <th>E-mail</th>
+            <th>Betalt</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      </div>
+      <footer class="d-flex justify-content-between">
+        <button id="save_btn" type="button" class="btn btn-primary">Gem</button>
+        <button id="close_btn" type="button" class="btn btn-info">Luk</button>
+      </footer>
+    </div>
+  </body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+  var paymentsInfo = {};
+  
+  $(function() {
+    google.script.run.withSuccessHandler(function(data) {
+      var members = JSON.parse(data);
+      console.log(members);
+      if (members) {
+        for (var i = 0; i < members.length; i++) {
+          var member = members[i];
+          var checked = member.payment?"checked":"";
+          var output = "<tr><td>" + member.firstname + " " + member.lastname + "</td><td>" + member.mail + "</td><td><input id='" + member.id + "' type='checkbox' " + checked + " /></td></tr>";
+          
+          $("table tbody").append(output);
+        }
+      }
+      
+      $("table tbody").on("change", "input[type='checkbox']", function() {
+        var checkbox = $(this);
+        var memberId = checkbox.attr("id");
+        var checked = checkbox.prop("checked");
+        
+        paymentsInfo[memberId] = checked;
+      });
+    }).getAnswerSheetValues();
+  
+    $("#save_btn").click(function() {
+      $("#overlay").show();
+      google.script.run.withSuccessHandler(function(success) {
+        $("#overlay").hide();
+        if (success) {
+          google.script.host.close();
+        } else {
+          
+        }  
+      }).saveMemberPayments(paymentsInfo);
+    });
+  
+    $("#close_btn").click(function() {
+      google.script.host.close();
+    });
+  });
+</script>

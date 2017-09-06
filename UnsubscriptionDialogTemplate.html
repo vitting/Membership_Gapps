@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<?!=include("OverlayCss")?>
+<style>
+  #table-container {
+    height: 425px;
+    width: 100%;
+    overflow: auto;
+  }
+  
+  #confirm-container {
+    position: absolute;
+    z-index: 90;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    display: none;
+  }
+  
+  #confirm-buttons-container {
+    width: 50%;
+  }
+  
+  #confirm-container .confirm-member-name {
+    font-weight: bold;
+  }
+  
+  #confirm-container button {
+    width: 100px;
+  }
+</style>
+</head>
+  <body>
+    <?!=include("OverlayHtml")?>
+    
+    <div id="confirm-container" data-member="">
+      <div class="mt-5">
+        <p class="mb-5">Er du sikker på du vil udmelde <span class="confirm-member-name"></span>?</p>
+        <div class="form-check mb-5">
+          <label class="form-check-label">
+          <input id="confirmation-mail" type="checkbox" class="form-check-input" checked> Send en bekræftigelses e-mail til <span class="confirm-member-name"></span></label>
+        </div>
+      </div>
+      <div class="d-flex justify-content-center">
+        <div id="confirm-buttons-container" class="d-flex justify-content-between">
+          <button id="confirm-yes" type="button" class="btn btn-primary">Ja</button>
+          <button id="confirm-no" type="button" class="btn btn-secondary">Nej</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="content-container">
+      <div id="table-container" class="mb-4">
+        <table class="table table-sm table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Navn</th>
+              <th>E-mail</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+      <footer class="d-flex justify-content-between">
+        <div>Antal medlemmer: <span id="number_of_members" ></span></div>
+        <button id="close_btn" type="button" class="btn btn-info">Luk</button>
+      </footer>
+    </div>
+    
+  </body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+  $(function() {
+    startup();
+  
+    function startup() {
+      google.script.run.withSuccessHandler(function(data) {
+        var members = JSON.parse(data);
+        $("table tbody").empty();
+        
+        if (members) {
+          for (var i = 0; i < members.length; i++) {
+            var member = members[i];
+            member.sendMail = false;
+            
+            var button = "<button id='" + member.id + "' type='button' class='btn btn-primary btn-sm' data-member='" + JSON.stringify(member) + "'>Udmeld</button>";
+            var output = "<tr><td>" + member.firstname + " " + member.lastname + "</td><td>" + member.mail + "</td><td>" + button + "</td></tr>";
+            $("table tbody").append(output);
+            $("#number_of_members").text(members.length);
+          }
+        }
+      
+        $("table tbody").on("click", "button", function() {
+          var member = $(this).data("member");
+          showConfirmationDialog(member);
+        });
+      }).getAnswerSheetValues()
+    }
+  
+    $("#confirm-yes").click(function() {
+      var member = hideConfirmationDialog();
+      $("#overlay").show();
+      
+      google.script.run.withSuccessHandler(function(success) {
+        $("#overlay").hide();  
+        
+        if (success) {
+          startup();
+        } else {
+          
+        }
+      }).UnsubscribeMember(member);
+    });
+  
+    $("#confirm-no").click(function() {
+      hideConfirmationDialog();
+    });
+  
+    $("#close_btn").click(function() {
+      google.script.host.close();
+    });
+    
+    function showConfirmationDialog(member) {
+      $(".confirm-member-name").text(member.firstname + " " + member.lastname);
+      $("#confirmation-mail").prop("checked", true);
+      $("#confirm-container").data("member", member).show();
+    }
+    
+    function hideConfirmationDialog() {
+      var member = $("#confirm-container").data("member");
+      member.sendMail = $("#confirmation-mail").prop("checked");
+      
+      $("#confirm-container").data("member", "").hide();
+      return member;
+    }
+  });
+</script>

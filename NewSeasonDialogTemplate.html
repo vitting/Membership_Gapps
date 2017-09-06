@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <?!=include("OverlayCss")?>
+    <style>
+      #backup_sheet_name {
+        width: 100%
+      }
+    </style>
+  </head>
+  <body>
+    <?!=include("OverlayHtml")?>
+    <div>
+      <p>Vil du oprette en ny sæson?</p>
+      <p>Der bliver oprettet en ny fane med en kopi af nuværende medlems informationer.</p>
+      <p>Betalings informationer for medlemmer bliver slettet (Sker ikke for kopien).</p>
+      <div>
+        <div>
+          <label>Fane navn på kopi af medlems info</label>
+        </div>
+        <input id="backup_sheet_name" type="text" class="form-control"/>
+      </div>
+    </div>
+    <footer class="d-flex justify-content-between mt-4">
+        <button id="create_new_season" type="button" class="btn btn-primary">Opret</button>
+        <button id="close_btn" type="button" class="btn btn-info">Luk</button>
+    </footer>
+  </body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+  $(function() { 
+    var year = new Date(Date.now()).getFullYear();
+    $("#backup_sheet_name").val("Medlemmer " + --year);
+  
+    $("#create_new_season").click(function() {
+      $("#overlay").show();
+      var name = $("#backup_sheet_name").val();
+      google.script.run.withSuccessHandler(function() {
+        $("#overlay").hide();
+        google.script.host.close();
+      }).createNewSeason(name);
+    });
+    
+    $("#close_btn").click(function() {
+      google.script.host.close();
+    });
+    
+  });
+</script>
